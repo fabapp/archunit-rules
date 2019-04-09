@@ -5,7 +5,6 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configurations.consideringOnlyDependenciesInDiagram;
 import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.adhereToPlantUmlDiagram;
-import static de.fabiankrueger.archunit.customer.BasicConditions.haveADefaultConstructor;
 import static de.fabiankrueger.archunit.customer.SpringPredicates.areAnnotatedWithSpringRestController;
 
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -47,20 +46,20 @@ public class ArchFitnessTest {
 //      ArchRuleDefinition.classes().that().
 
   /*------------------------------------------------------
-   * Example 1
+   * Example 1: Package access
    *------------------------------------------------------*/
   @ArchTest
-  public static final ArchRule apiClassesShouldNotAccessAnyOtherPackages =
+  public static final ArchRule noClassesINApiPackageShouldAccessAnyOtherPackages =
       ArchRuleDefinition
-          .classes()
+          .noClasses()
           .that()
-          .resideInAPackage("..web..")
+          .resideInAPackage("..api..")
           .should()
           .dependOnClassesThat()
           .resideInAnyPackage("..service..", "..web..");
 
   /*------------------------------------------------------
-   * Example 2
+   * Example 2: JPA entities must have default constructor
    *------------------------------------------------------*/
   /**
    * Predicate for classes annotated with either @Entity or @Embeddable
@@ -76,7 +75,7 @@ public class ArchFitnessTest {
   /**
    * Checks if given class has a default constructor.
    */
-  public static ArchCondition<? super JavaClass> haveADefaultConstructor =
+  private static ArchCondition<? super JavaClass> haveADefaultConstructor =
       new ArchCondition<JavaClass>("have default constructor") {
 
         @Override
@@ -101,22 +100,24 @@ public class ArchFitnessTest {
           .that(areJpaModelClasses)
           .should(haveADefaultConstructor);
 
-
-  @ArchTest
-  public static final ArchRule fieldsShouldNotBeAnnotatedWithAutowired = SpringArchRules.fieldsShouldNotBeAnnotatedWithAutowired;
-
-  @ArchTest
-  public static final ArchRule onlySetterAnnotatedWithAutowired = SpringArchRules.verifyMethodsAnnotatedWithAutowired;
-
+  /*------------------------------------------------------
+   * Example 3: PlantUML Test
+   *------------------------------------------------------*/
   @ArchTest
   public static final ArchRule testAgainstUml = classes()
       .should(adhereToPlantUmlDiagram(ArchFitnessTest.class.getResource("/my-diagram.puml"),
           consideringOnlyDependenciesInDiagram())
       );
 
-  // consideringOnlyDependenciesInDiagram()) //consideringAllDependencies())
+  /*------------------------------------------------------
+   * Spring dependency injection tests
+   *------------------------------------------------------*/
 
-//    ArchConditions.onlyHaveDependenciesInAnyPackage()
+  @ArchTest
+  public static final ArchRule fieldsShouldNotBeAnnotatedWithAutowired = SpringArchRules.fieldsShouldNotBeAnnotatedWithAutowired;
+
+  @ArchTest
+  public static final ArchRule onlySetterAnnotatedWithAutowired = SpringArchRules.verifyMethodsAnnotatedWithAutowired;
 
   @ArchTest
   public static final ArchRule controllerShouldOnlyDependOnServices = classes()
@@ -134,11 +135,10 @@ public class ArchFitnessTest {
       .orShould()
       .accessClassesThat()
       .resideInAPackage("java.lang..")
-//      .resideInAPackage("java.lang")
       ;
 
   @ArchTest
-  public static final ArchRule services = classes()
+  public static final ArchRule springServiceRules= classes()
       .that()
       .areAnnotatedWith(Service.class)
       .should()
@@ -170,14 +170,9 @@ public class ArchFitnessTest {
       .beAnnotatedWith(DeleteMapping.class);
 
   @ArchTest
-  public static final ArchRule diPointsMustBeAccessible = fields()
+  public static final ArchRule allFieldsShouldBePrivate = fields()
       .should()
       .bePrivate();
-
-//      .that()
-//      .doNotHaveModifier()
-//      .should()
-//      .notBeAnnotatedWith("Autowired");
 
 
   public static final DescribedPredicate<JavaClass> ofTypeRepository = new DescribedPredicate<JavaClass>(
@@ -199,11 +194,4 @@ public class ArchFitnessTest {
           .haveRawType(ofTypeRepository)
           .should()
           .bePackagePrivate();
-
-//          .haveModifier(JavaModifier.FINAL);
-
-
-  @ArchTest
-  public static final ArchRule r1 = JpaArchRules.jpaEntitiesMustHaveDefaultConstructor;
-
 }
