@@ -1,0 +1,8 @@
+@startuml
+[Api] <<..customer..api..>>
+[Web] <<..customer..web..>>
+[Service] <<..customer.service..>>
+
+[Service] --> [Api]
+[Web] --> [Api]
+@enduml
