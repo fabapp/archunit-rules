@@ -91,7 +91,7 @@ public class ArchFitnessTest {
       };
 
   /**
-   * Test taht all classes annotated with either @Embeddable or @Entity should have a default constructor
+   * Test that all classes annotated with either @Embeddable or @Entity should have a default constructor
    * @see de.fabiankrueger.archunit.customer.api.Customer
    */
   @ArchTest
